@@ -1,14 +1,15 @@
+// src/types/food.ts
 export interface FoodItem {
-  id: string;
+  id: string;               // ✅ Use string everywhere
   name: string;
-  category: string;
   expiryDate: string;
+  category: string;
   quantity: number;
   unit: string;
   location: string;
   addedDate: string;
-  notes?: string;
 }
+
 
 export interface ExpiryStatus {
   status: 'fresh' | 'expiring' | 'expired';

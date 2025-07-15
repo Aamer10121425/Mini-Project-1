@@ -1,109 +1,104 @@
-import React from 'react';
-import { Calendar, MapPin, Package, Trash2, Edit3 } from 'lucide-react';
+import React, { useState } from 'react';
 import { FoodItem } from '../types/food';
-import { getExpiryStatus, formatDate } from '../utils/dateUtils';
 
 interface FoodCardProps {
   food: FoodItem;
   onDelete: (id: string) => void;
-  onEdit: (food: FoodItem) => void;
+  onEdit: (updatedFood: FoodItem) => void;
 }
 
 export const FoodCard: React.FC<FoodCardProps> = ({ food, onDelete, onEdit }) => {
-  const { status, daysLeft } = getExpiryStatus(food.expiryDate);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedFood, setEditedFood] = useState<FoodItem>(food);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'expired':
-        return 'bg-red-50 border-red-200';
-      case 'expiring':
-        return 'bg-amber-50 border-amber-200';
-      default:
-        return 'bg-green-50 border-green-200';
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditedFood(prev => ({ ...prev, [name]: value }));
   };
 
-  const getStatusBadge = () => {
-    switch (status) {
-      case 'expired':
-        return <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Expired</span>;
-      case 'expiring':
-        return <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">Expiring Soon</span>;
-      default:
-        return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Fresh</span>;
-    }
-  };
-
-  const getDaysText = () => {
-    if (status === 'expired') {
-      return `Expired ${Math.abs(daysLeft)} days ago`;
-    } else if (status === 'expiring') {
-      return `${daysLeft} days left`;
-    } else {
-      return `${daysLeft} days left`;
-    }
+  const handleSave = () => {
+    onEdit(editedFood);
+    setIsEditing(false);
   };
 
   return (
-    <div className={`p-4 rounded-xl border-2 ${getStatusColor()} transition-all duration-200 hover:shadow-lg group`}>
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-800 text-lg">{food.name}</h3>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">{food.category}</span>
-            {getStatusBadge()}
-          </div>
-        </div>
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="border rounded shadow p-4">
+      {isEditing ? (
+        <div className="space-y-2">
+          <input
+            className="border p-1 w-full"
+            name="name"
+            value={editedFood.name}
+            onChange={handleChange}
+          />
+          <input
+            className="border p-1 w-full"
+            type="date"
+            name="expiryDate"
+            value={editedFood.expiryDate}
+            onChange={handleChange}
+          />
+          <input
+            className="border p-1 w-full"
+            name="category"
+            value={editedFood.category}
+            onChange={handleChange}
+          />
+          <input
+            className="border p-1 w-full"
+            name="quantity"
+            type="number"
+            value={editedFood.quantity}
+            onChange={handleChange}
+          />
+          <input
+            className="border p-1 w-full"
+            name="unit"
+            value={editedFood.unit}
+            onChange={handleChange}
+          />
+          <input
+            className="border p-1 w-full"
+            name="location"
+            value={editedFood.location}
+            onChange={handleChange}
+          />
           <button
-            onClick={() => onEdit(food)}
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="bg-green-500 text-white px-3 py-1 rounded mr-2"
+            onClick={handleSave}
           >
-            <Edit3 size={16} />
+            Save
           </button>
           <button
-            onClick={() => onDelete(food.id)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="bg-gray-400 text-white px-3 py-1 rounded"
+            onClick={() => setIsEditing(false)}
           >
-            <Trash2 size={16} />
+            Cancel
           </button>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar size={14} />
-          <span>Expires: {formatDate(food.expiryDate)}</span>
-        </div>
-        
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Package size={14} />
-          <span>{food.quantity} {food.unit}</span>
-        </div>
-
-        {food.location && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin size={14} />
-            <span>{food.location}</span>
+      ) : (
+        <div>
+          <h2 className="text-lg font-semibold">{food.name}</h2>
+          <p>Expires on: {food.expiryDate}</p>
+          <p>Category: {food.category}</p>
+          <p>Quantity: {food.quantity} {food.unit}</p>
+          <p>Location: {food.location}</p>
+          <div className="mt-2 space-x-2">
+            <button
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit
+            </button>
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded"
+              onClick={() => onDelete(food.id)}
+            >
+              Delete
+            </button>
           </div>
-        )}
-
-        <div className="pt-2 border-t border-gray-200">
-          <span className={`text-sm font-medium ${
-            status === 'expired' ? 'text-red-600' : 
-            status === 'expiring' ? 'text-amber-600' : 
-            'text-green-600'
-          }`}>
-            {getDaysText()}
-          </span>
         </div>
-
-        {food.notes && (
-          <div className="pt-2 border-t border-gray-200">
-            <p className="text-sm text-gray-500 italic">{food.notes}</p>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };
