@@ -6,7 +6,7 @@ import { FoodItem } from '../types/food'; // ✅ Central type with id: string
 const Dashboard: React.FC = () => {
   const [items, setItems] = useState<FoodItem[]>([]);
 
-  // ✅ Fetch all food items from API
+  // ✅ Fetch all food items from Firebase API
   const fetchItems = async () => {
     try {
       const res = await fetch('/api/food');
@@ -17,23 +17,41 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // ✅ Handle deletion locally
-  const handleDelete = (id: string) => {
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    // Optional: call backend to delete from DB
+  // ✅ Delete from backend AND update UI
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`/api/food/${id}`, {
+        method: 'DELETE',
+      });
+
+      const updatedItems = items.filter(item => item.id !== id);
+      setItems(updatedItems);
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+    }
   };
 
-  // ✅ Handle editing locally
-  const handleEdit = (updatedFood: FoodItem) => {
-    const updatedItems = items.map(item =>
-      item.id === updatedFood.id ? updatedFood : item
-    );
-    setItems(updatedItems);
-    // Optional: call backend to update DB
+  // ✅ Update backend AND update UI
+  const handleEdit = async (updatedFood: FoodItem) => {
+    try {
+      await fetch(`/api/food/${updatedFood.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedFood),
+      });
+
+      const updatedItems = items.map(item =>
+        item.id === updatedFood.id ? updatedFood : item
+      );
+      setItems(updatedItems);
+    } catch (error) {
+      console.error('Failed to update item:', error);
+    }
   };
 
-  // ✅ Load food items on first render
+  // ✅ Load items on first render
   useEffect(() => {
     fetchItems();
   }, []);
