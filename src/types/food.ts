@@ -3,11 +3,11 @@ export interface FoodItem {
   id: string;               // ✅ Use string everywhere
   name: string;
   expiryDate: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  location: string;
-  addedDate: string;
+  category?: string;
+  quantity?: number;
+  unit?: string;
+  location?: string;
+  addedDate?: string;
 }
 
 
